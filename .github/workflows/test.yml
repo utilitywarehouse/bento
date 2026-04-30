@@ -8,6 +8,9 @@ on:
   schedule:
     - cron: '0 0/2 * * *' # Every two hours
 
+permissions:
+  contents: read
+
 jobs:
   test:
     if: ${{ github.repository == 'warpstreamlabs/bento' || github.event_name != 'schedule' }}
@@ -15,6 +18,11 @@ jobs:
     env:
       CGO_ENABLED: 0
     steps:
+
+    - name: Harden the runner (Audit all outbound calls)
+      uses: step-security/harden-runner@v2
+      with:
+        egress-policy: audit
 
     - name: Checkout code
       uses: actions/checkout@v4
@@ -35,11 +43,19 @@ jobs:
       run: make test
 
   golangci-lint:
+    permissions:
+      contents: read  # for actions/checkout to fetch code
+      pull-requests: read  # for golangci/golangci-lint-action to fetch pull requests
     if: ${{ github.repository == 'warpstreamlabs/bento' || github.event_name != 'schedule' }}
     runs-on: ubuntu-latest
     env:
       CGO_ENABLED: 0
     steps:
+
+    - name: Harden the runner (Audit all outbound calls)
+      uses: step-security/harden-runner@v2
+      with:
+        egress-policy: audit
 
     - name: Checkout code
       uses: actions/checkout@v4
@@ -61,6 +77,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    - name: Harden the runner (Audit all outbound calls)
+      uses: step-security/harden-runner@v2
+      with:
+        egress-policy: audit
+
     - uses: actions/checkout@v4
     - name: Build Doc Site
       uses: actions/setup-node@v4
